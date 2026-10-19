@@ -32,6 +32,7 @@ docker run -d --rm --shm-size=24g --gpus '"device=0"' \
   -e NGC_API_KEY \
   -e NIM_SERVED_MODEL_NAME \
   -e NIM_MODEL_PROFILE=vllm-bf16-tp1 \
+  -e NIM_MAX_MODEL_LEN=16384 \ 
   --name nim_llama_3.1 \
    $NIM_IMG
 
