@@ -22,6 +22,7 @@ fi
 
 echo "saving model data to $LOCAL_NIM_CACHE"
 MYUID=$(id -u)
+mkdir -p $LOCAL_NIM_CACHE
 sudo chown -R $MYUID:$MYUID $LOCAL_NIM_CACHE
 
 docker run -d --rm --shm-size=24g --gpus '"device=0"' \
