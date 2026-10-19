@@ -16,6 +16,7 @@ COPY apt_packages.txt /workspace/apt_packages.txt
 RUN apt-get update && \
     xargs -a /workspace/apt_packages.txt apt-get install -y --no-install-recommends  && \
     rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y libgl1-mesa-glx
 
 # Allow sudo group to use sudo without password
 RUN usermod -aG sudo ubuntu
