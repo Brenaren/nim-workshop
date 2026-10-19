@@ -1,0 +1,88 @@
+services:
+  nim_llama_8b:
+    image: ${NIM_IMG}
+    container_name: nim_llama_8b
+    shm_size: 16gb
+    ulimits:
+      # remove the limit on the amount of memory that can be locked into RAM
+      memlock: -1
+      # set max stack size to 64MB
+      stack: 67108864
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              device_ids: ["1"]
+    environment:
+      # specify the ids of the GPUs exposed to the container
+      - NGC_API_KEY=${NGC_API_KEY}
+      - NIM_RELAX_MEM_CONSTRAINTS=1
+
+    volumes:
+      # we pass the model store into the container through volume mount
+      - $LOCAL_NIM_CACHE:/opt/nim/.cache
+      - .:/docker
+      # - $PROJECT_DIR/scripts/start-server.sh:/opt/nim/start-server.sh
+    ports:
+      - 9990:8000
+
+
+  nim_reranker:
+    image: ${RERANKER_IMG}
+    container_name: nim_reranker
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              device_ids: ["0"]
+
+    shm_size: '16gb'
+    environment:
+      # - NGC_API_KEY=${NGC_API_KEY}
+      - NGC_API_KEY=${NGC_CLI_API_KEY}
+    volumes:
+      - $LOCAL_NIM_CACHE:/opt/nim/.cache
+    user: "${UID}"
+    ports:
+      - "9991:8000"
+
+  nim_embed:
+    image: ${EMBED_IMG}
+    container_name: nim_embed
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              device_ids: ["0"]
+    shm_size: '16gb'
+    environment:
+      #- NGC_API_KEY=${NGC_API_KEY}
+      - NGC_API_KEY=${NGC_CLI_API_KEY}
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - $LOCAL_NIM_CACHE:/opt/nim/.cache
+    user: "${UID}"
+    ports:
+      - "9992:8000"
+
+  nim_client:
+    build:
+      context: .
+      dockerfile: nim_client.Dockerfile
+    container_name: nimw_client
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    shm_size: '16gb'
+    volumes:
+      - ../:/workspace
+    entrypoint: /bin/bash
